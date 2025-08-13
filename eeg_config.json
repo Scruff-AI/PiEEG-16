@@ -1,0 +1,14 @@
+{
+  "channels": 16,
+  "sampling_rate": 250,
+  "spi_bus": 0,
+  "spi_device": 0,
+  "chip_select_line": 19,
+  "buffer_size_seconds": 2,
+  "tcp_ip": "0.0.0.0",
+  "tcp_port": 6677,
+  "process_filtering": true,
+  "expected_min_voltage": -100,
+  "expected_max_voltage": 100,
+  "min_std_threshold": 0.1
+}
