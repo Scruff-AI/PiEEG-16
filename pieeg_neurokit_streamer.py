@@ -12,6 +12,7 @@ import numpy as np
 import neurokit2 as nk
 import spidev
 import gpiod
+import subprocess
 from typing import Dict, List, Tuple
 import logging
 
@@ -81,9 +82,14 @@ class PiEEGStreamer:
             self.spi_2.mode = 0b01
             self.spi_2.bits_per_word = 8
 
-            # Setup chip select (shared GPIO19)
-            # Updated for gpiod 1.5.4 compatibility (uses lowercase 'chip')
-            self.chip = gpiod.chip("gpiochip4")  # Updated to lowercase 'chip'
+            # Setup chip select with auto-detection (works on any Pi model)
+            try:
+                chip_name = subprocess.check_output(["gpiodetect"], text=True).splitlines()[0].split()[0]
+                logger.info(f"Auto-detected GPIO chip: {chip_name}")
+                self.chip = gpiod.chip(chip_name)
+            except Exception as e:
+                logger.warning(f"Auto-detection failed: {e}, falling back to gpiochip4")
+                self.chip = gpiod.chip("gpiochip4")
             self.cs_line = self.chip.get_line(Config.CS_LINE)
             self.cs_line.request(consumer="PiEEG", type=gpiod.LINE_REQ_DIR_OUT, default_val=1)
 
