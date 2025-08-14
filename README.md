@@ -30,7 +30,11 @@ ssh brain@BrainPi
 Update the system:
 ```bash
 sudo apt-get update && sudo apt-get upgrade -y
-sudo apt-get install -y python3 python3-pip python3-venv git build-essential libusb-1.0-0-dev swig python3-dev libperiphery-dev
+sudo apt-get install -y python3 python3-pip python3-venv git build-essential \
+  libusb-1.0-0-dev swig python3-dev libperiphery-dev \
+  libgpiod-dev python3-libgpiod libatlas-base-dev libhdf5-dev \
+  libffi-dev libssl-dev libbz2-dev libreadline-dev libsqlite3-dev \
+  pkg-config libfreetype6-dev libpng-dev python3-tk
 ```
 
 ### Step 1.2: Enable SPI Interface
@@ -68,8 +72,23 @@ source pieeg_env/bin/activate
 
 Upgrade pip and install dependencies:
 ```bash
-python3 -m pip install --upgrade pip
-python3 -m pip install gpiod==1.5.4 spidev matplotlib scipy neurokit2 numpy
+python3 -m pip install --upgrade pip setuptools wheel
+python3 -m pip install numpy==1.24.3
+python3 -m pip install scipy matplotlib pandas
+python3 -m pip install gpiod==1.5.4 spidev 
+python3 -m pip install neurokit2
+```
+
+**If you encounter any installation errors, try installing dependencies one by one:**
+```bash
+# Install core scientific computing
+python3 -m pip install numpy scipy matplotlib pandas
+
+# Install GPIO and SPI libraries  
+python3 -m pip install gpiod==1.5.4 spidev
+
+# Install NeuroKit2 (may take several minutes)
+python3 -m pip install neurokit2
 ```
 
 Verify dependencies:
