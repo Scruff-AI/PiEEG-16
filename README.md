@@ -30,14 +30,53 @@ ssh brain@BrainPi
 Update the system:
 ```bash
 sudo apt-get update && sudo apt-get upgrade -y
-sudo apt-get install -y python3 python3-pip python3-venv git build-essential \
-  libusb-1.0-0-dev swig python3-dev libperiphery-dev \
+sudo apt-get install -y python3 python3-pip python3-venv git build-essential cmake \
+  libusb-1.0-0-dev swig python3-dev \
   libgpiod-dev python3-libgpiod libatlas-base-dev libhdf5-dev \
   libffi-dev libssl-dev libbz2-dev libreadline-dev libsqlite3-dev \
   pkg-config libfreetype6-dev libpng-dev python3-tk
 ```
 
-### Step 1.2: Enable SPI Interface
+### Step 1.2: Build libperiphery from Source
+**🔧 Important:** The `libperiphery-dev` package doesn't exist. Build libperiphery from source instead:
+
+**Clone libperiphery repository:**
+```bash
+cd ~
+git config --global http.version HTTP/1.1
+git clone https://github.com/vsergeev/libperiphery.git
+```
+
+**If cloning fails (HTTP/2 error), try these alternatives:**
+```bash
+# Option A: Retry with HTTP/1.1 (usually fixes HTTP/2 framing errors)
+git config --global http.version HTTP/1.1
+git clone https://github.com/vsergeev/libperiphery.git
+
+# Option B: Download as ZIP if git clone still fails
+wget https://github.com/vsergeev/libperiphery/archive/refs/heads/master.zip
+unzip master.zip
+mv libperiphery-master libperiphery
+```
+
+**Build and install from source:**
+```bash
+cd ~/libperiphery
+mkdir build
+cd build
+cmake ..
+make
+sudo make install
+sudo ldconfig
+```
+
+**Verify installation:**
+```bash
+pkg-config --modversion periphery
+```
+Expected: Version number (e.g., `2.4.1`). If this fails, check cmake and make output for errors.
+
+### Step 1.3: Enable SPI Interface
 Enable SPI (required for PiEEG-16 communication):
 ```bash
 sudo raspi-config
@@ -57,7 +96,7 @@ sudo raspi-config
   ```
   Expected: `/dev/spidev0.0`.
 
-### Step 1.3: Create Project Directory and Virtual Environment
+### Step 1.4: Create Project Directory and Virtual Environment
 Create the project directory:
 ```bash
 mkdir -p ~/PiEEG-16
@@ -105,7 +144,7 @@ scipy          1.15.1
 spidev         3.6
 ```
 
-### Step 1.4: Create Configuration File (`eeg_config.json`)
+### Step 1.5: Create Configuration File (`eeg_config.json`)
 Create a JSON config file for easy customization:
 ```bash
 nano eeg_config.json
@@ -129,7 +168,7 @@ Paste:
 ```
 Save and exit.
 
-### Step 1.5: Create Pi Streamer Script (`pieeg_neurokit_streamer.py`)
+### Step 1.6: Create Pi Streamer Script (`pieeg_neurokit_streamer.py`)
 Create the main streamer script:
 ```bash
 nano pieeg_neurokit_streamer.py
@@ -142,7 +181,7 @@ Make it executable:
 chmod +x pieeg_neurokit_streamer.py
 ```
 
-### Step 1.6: Test the Pi Streamer
+### Step 1.7: Test the Pi Streamer
 Run the script:
 ```bash
 python3 pieeg_neurokit_streamer.py
@@ -157,7 +196,7 @@ python3 pieeg_neurokit_streamer.py
 - Test responsiveness: Blink or touch an electrode; logs should show changes in min/max/std.
 - If data is constant (-100000.0µV) or low rate, verify electrodes, SPI wiring, or adjust `read_eeg_data` method per PiEEG-16 documentation.
 
-### Step 1.7: Create Deployment Script (`deploy_pieeg_solution.sh`)
+### Step 1.8: Create Deployment Script (`deploy_pieeg_solution.sh`)
 Create a deployment script for easy startup:
 ```bash
 nano deploy_pieeg_solution.sh
@@ -182,7 +221,7 @@ Run:
 ./deploy_pieeg_solution.sh
 ```
 
-### Step 1.8: Pi Troubleshooting
+### Step 1.9: Pi Troubleshooting
 - **No Data**: Check electrode connections, power supply (battery only), and SPI devices (`ls /dev/spidev*`).
 - **Constant Values**: Verify `read_eeg_data` scaling (adjust ADC conversion based on PiEEG specs).
 - **Low Rate**: Reduce CPU load (close other processes) or adjust sleep in `read_eeg_data`.
